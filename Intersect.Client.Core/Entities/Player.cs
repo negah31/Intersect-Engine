@@ -39,7 +39,7 @@ namespace Intersect.Client.Entities;
 public partial class Player : Entity, IPlayer
 {
     public bool mIsSprinting = false;
-    public float mSprintSpeedMultiplier = 2f;
+    public float mSprintSpeedMultiplier = 8f;
     public delegate void InventoryUpdatedEventHandler(Player player, int slotIndex);
 
     private Guid _class;
@@ -2608,6 +2608,7 @@ public partial class Player : Entity, IPlayer
             TryToChangeDimension();
 
             var movementTime = GetMovementTime();
+            System.Diagnostics.Debug.WriteLine($"Vitesse normale: movementTime = {movementTime}");
             if (mIsSprinting)
             {
                 movementTime /= mSprintSpeedMultiplier;

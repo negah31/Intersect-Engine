@@ -608,18 +608,25 @@ public partial class Entity : IEntity
     //Returns the amount of time required to traverse 1 tile
     public virtual float GetMovementTime()
     {
-        var time = 1000f / (float)(1 + Math.Log(Stat[(int)Enums.Stat.Speed]));
+        var speedStat = Stat[(int)Enums.Stat.Speed];
+        var time = 1000f / (float)(1 + Math.Log(speedStat));
+        System.Diagnostics.Debug.WriteLine($"GetMovementTime: Speed={speedStat}, time={time}");
         if (DirectionFacing > Direction.Right)
         {
             time *= MathHelper.UnitDiagonalLength;
+            System.Diagnostics.Debug.WriteLine($"Diagonale appliquée: time={Southeastern
+time}");
         }
 
         if (IsBlocking)
         {
             time += time * Options.Instance.Combat.BlockingSlow;
+            System.Diagnostics.Debug.WriteLine($"Blocage appliqué: time={time}");
         }
 
-        return Math.Min(1000f, time);
+        time = Math.Min(1000f, time);
+        System.Diagnostics.Debug.WriteLine($"GetMovementTime final: time={time}");
+        return time;
     }
 
     public override string ToString() => Name;
