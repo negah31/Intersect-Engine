@@ -608,14 +608,13 @@ public partial class Entity : IEntity
     //Returns the amount of time required to traverse 1 tile
     public virtual float GetMovementTime()
     {
-        var speedStat = Stat[(int)Enums.Stat.Speed];
-        var time = 1000f / (float)(1 + Math.Log(speedStat));
-        System.Diagnostics.Debug.WriteLine($"GetMovementTime: Speed={speedStat}, time={time}");
+        var time = 500f; // Vitesse normale: 500 ms par tuile
+        System.Diagnostics.Debug.WriteLine($"GetMovementTime: time initial={time}");
+
         if (DirectionFacing > Direction.Right)
         {
             time *= MathHelper.UnitDiagonalLength;
-            System.Diagnostics.Debug.WriteLine($"Diagonale appliquée: time={Southeastern
-time}");
+            System.Diagnostics.Debug.WriteLine($"Diagonale appliquée: time={time}");
         }
 
         if (IsBlocking)
