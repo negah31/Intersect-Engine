@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Intersect.Client.Framework.GenericClasses;
 
@@ -54,11 +55,18 @@ internal sealed class BuiltinControlsProvider : IControlsProvider
 
     public BuiltinControlsProvider()
     {
-        var sprintMapping = _defaultMappings[Control.Sprint];
-        var sprintKey = sprintMapping.Bindings.Count > 0 ? sprintMapping.Bindings[0].Key : Keys.None;
-        Console.WriteLine($"Control.Sprint bindé à: {Enum.GetName(typeof(Keys), sprintKey)}");
+        Debug.WriteLine("BuiltinControlsProvider instancié");
+        if (_defaultMappings.ContainsKey(Control.Sprint))
+        {
+            var sprintMapping = _defaultMappings[Control.Sprint];
+            var sprintKey = sprintMapping.Bindings.Count > 0 ? sprintMapping.Bindings[0].Key : Keys.None;
+            Debug.WriteLine($"Control.Sprint bindé à: {Enum.GetName(typeof(Keys), sprintKey)}");
+        }
+        else
+        {
+            Debug.WriteLine("Control.Sprint absent des mappings");
+        }
     }
-
     public Control[] Controls { get; } = Enum.GetValues<Control>().Where(control => control.IsValid()).ToArray();
 
     public bool TryGetDefaultMapping(Control control, [NotNullWhen(true)] out ControlMapping? defaultMapping) =>

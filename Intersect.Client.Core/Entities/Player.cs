@@ -2430,41 +2430,44 @@ public partial class Player : Entity, IPlayer
     //Movement Processing
     private void ProcessDirectionalInput()
     {
+        System.Diagnostics.Debug.WriteLine("ProcessDirectionalInput exécuté");
+
         if (Globals.Me == default || Globals.MapGrid == default)
         {
+            System.Diagnostics.Debug.WriteLine("Bloqué: Globals.Me ou MapGrid null");
             return;
         }
 
-        //Check if player is crafting
         if (Globals.InCraft)
         {
+            System.Diagnostics.Debug.WriteLine("Bloqué: En craft");
             return;
         }
 
-        //check if player is stunned or snared, if so don't let them move.
         for (var n = 0; n < Status.Count; n++)
         {
             if (Status[n].Type is SpellEffect.Stun or SpellEffect.Snare or SpellEffect.Sleep)
             {
+                System.Diagnostics.Debug.WriteLine("Bloqué: Statut Stun/Snare/Sleep");
                 return;
             }
         }
 
-        //Check if the player is dashing, if so don't let them move.
         if (Dashing != null || DashQueue.Count > 0 || DashTimer > Timing.Global.Milliseconds)
         {
+            System.Diagnostics.Debug.WriteLine("Bloqué: En dash");
             return;
         }
 
         if (IsAttacking && !Options.Instance.Player.AllowCombatMovement)
         {
+            System.Diagnostics.Debug.WriteLine("Bloqué: En attaque");
             return;
         }
 
         Point position = new(X, Y);
         IEntity? blockedBy = null;
 
-        // Déterminer la direction cardinale (pas de diagonales)
         Direction moveDir = Direction.None;
         if (Controls.IsControlPressed(Control.MoveUp))
         {
@@ -2485,25 +2488,24 @@ public partial class Player : Entity, IPlayer
 
         DirectionMoving = moveDir;
 
+        System.Diagnostics.Debug.WriteLine($"DirectionMoving: {moveDir}");
+
         if (moveDir <= Direction.None || Globals.EventDialogs.Count != 0)
         {
+            System.Diagnostics.Debug.WriteLine("Bloqué: Pas de direction ou EventDialogs");
             return;
         }
 
-        // Vérifier si le mapping pour Sprint existe
-        Console.WriteLine($"Sprint mapping exists: {Controls.ActiveControls.Mappings.ContainsKey(Control.Sprint)}");
-
-        // Détection du sprint
+        System.Diagnostics.Debug.WriteLine($"Sprint mapping exists: {Controls.ActiveControls.Mappings.ContainsKey(Control.Sprint)}");
         bool sprintKeyPressed = Controls.IsControlPressed(Control.Sprint);
-        Console.WriteLine($"Sprint key pressed: {sprintKeyPressed}");
+        System.Diagnostics.Debug.WriteLine($"Sprint key pressed: {sprintKeyPressed}");
         mIsSprinting = sprintKeyPressed;
+        System.Diagnostics.Debug.WriteLine($"Sprint active: {mIsSprinting}");
 
-        Console.WriteLine($"Sprint active: {mIsSprinting}");
-
-        //Try to move if able and not casting spells.
         if (IsMoving || MoveTimer >= Timing.Global.Milliseconds ||
             (!Options.Instance.Combat.MovementCancelsCast && IsCasting))
         {
+            System.Diagnostics.Debug.WriteLine("Bloqué: IsMoving, MoveTimer ou IsCasting");
             return;
         }
 
@@ -2522,6 +2524,7 @@ public partial class Player : Entity, IPlayer
             var target = position + delta;
             if (IsTileBlocked(target, Z, MapId, ref blockedBy) != -1)
             {
+                System.Diagnostics.Debug.WriteLine("Bloqué: Tile bloqué");
                 return;
             }
 
@@ -2604,12 +2607,11 @@ public partial class Player : Entity, IPlayer
 
             TryToChangeDimension();
 
-            // Ajuster la vitesse si sprint
             var movementTime = GetMovementTime();
             if (mIsSprinting)
             {
                 movementTime /= mSprintSpeedMultiplier;
-                Console.WriteLine($"Sprint vitesse appliquée: movementTime = {movementTime}");
+                System.Diagnostics.Debug.WriteLine($"Sprint vitesse appliquée: movementTime = {movementTime}");
             }
 
             PacketSender.SendMove();
