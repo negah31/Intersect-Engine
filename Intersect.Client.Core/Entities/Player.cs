@@ -2464,13 +2464,40 @@ public partial class Player : Entity, IPlayer
         Point position = new(X, Y);
         IEntity? blockedBy = null;
 
-        if (DirectionMoving <= Direction.None || Globals.EventDialogs.Count != 0)
+        // Déterminer la direction cardinale (pas de diagonales)
+        Direction moveDir = Direction.None;
+        if (Controls.IsControlPressed(Control.MoveUp))
+        {
+            moveDir = Direction.Up;
+        }
+        else if (Controls.IsControlPressed(Control.MoveDown))
+        {
+            moveDir = Direction.Down;
+        }
+        else if (Controls.IsControlPressed(Control.MoveLeft))
+        {
+            moveDir = Direction.Left;
+        }
+        else if (Controls.IsControlPressed(Control.MoveRight))
+        {
+            moveDir = Direction.Right;
+        }
+
+        DirectionMoving = moveDir;
+
+        if (moveDir <= Direction.None || Globals.EventDialogs.Count != 0)
         {
             return;
         }
 
+        // Vérifier si le mapping pour Sprint existe
+        Console.WriteLine($"Sprint mapping exists: {Controls.ActiveControls.Mappings.ContainsKey(Control.Sprint)}");
+
         // Détection du sprint
-        mIsSprinting = Controls.IsControlPressed(Control.Sprint);
+        bool sprintKeyPressed = Controls.IsControlPressed(Control.Sprint);
+        Console.WriteLine($"Sprint key pressed: {sprintKeyPressed}");
+        mIsSprinting = sprintKeyPressed;
+
         Console.WriteLine($"Sprint active: {mIsSprinting}");
 
         //Try to move if able and not casting spells.
@@ -2486,77 +2513,39 @@ public partial class Player : Entity, IPlayer
         }
 
         var dir = DirectionFacing;
-        var moveDir = DirectionMoving;
-
-        // Limiter les directions si sprint (ex. haut/bas ou direction actuelle)
-        if (mIsSprinting)
-        {
-            // Exemple : limiter à haut/bas
-            if (moveDir is Direction.Left or Direction.Right or Direction.UpLeft or Direction.UpRight or Direction.DownLeft or Direction.DownRight)
-            {
-                mIsSprinting = false; // Désactiver si direction non autorisée
-            }
-        }
 
         var enableCrossingDiagonalBlocks = Options.Instance.Map.EnableCrossingDiagonalBlocks;
 
         if (moveDir != Direction.None)
         {
-            List<Direction> possibleDirections = new(4) { moveDir };
-            if (dir.IsAdjacent(moveDir))
+            var delta = moveDir.GetDeltaPoint();
+            var target = position + delta;
+            if (IsTileBlocked(target, Z, MapId, ref blockedBy) != -1)
             {
-                System.Console.WriteLine($"{dir} is adjacent to {moveDir}");
-                possibleDirections.Add(dir);
+                return;
             }
 
-            if (moveDir.IsDiagonal())
+            position.X += delta.X;
+            position.Y += delta.Y;
+            IsMoving = true;
+            DirectionFacing = moveDir;
+
+            if (delta.X == 0)
             {
-                possibleDirections.AddRange(moveDir.GetComponentDirections());
+                OffsetX = 0;
+            }
+            else
+            {
+                OffsetX = delta.X > 0 ? -TileWidth : TileWidth;
             }
 
-            foreach (var possibleDirection in possibleDirections)
+            if (delta.Y == 0)
             {
-                var delta = possibleDirection.GetDeltaPoint();
-                var target = position + delta;
-                if (IsTileBlocked(target, Z, MapId, ref blockedBy) != -1)
-                {
-                    continue;
-                }
-
-                if (!enableCrossingDiagonalBlocks && possibleDirection.IsDiagonal())
-                {
-                    if (possibleDirection.GetComponentDirections()
-                        .Select(componentDirection => componentDirection.GetDeltaPoint() + position)
-                        .All(componentTarget => IsTileBlocked(componentTarget, Z, MapId, ref blockedBy) != -1))
-                    {
-                        continue;
-                    }
-                }
-
-                position.X += delta.X;
-                position.Y += delta.Y;
-                IsMoving = true;
-                DirectionFacing = possibleDirection;
-
-                if (delta.X == 0)
-                {
-                    OffsetX = 0;
-                }
-                else
-                {
-                    OffsetX = delta.X > 0 ? -TileWidth : TileWidth;
-                }
-
-                if (delta.Y == 0)
-                {
-                    OffsetY = 0;
-                }
-                else
-                {
-                    OffsetY = delta.Y > 0 ? -TileHeight : TileHeight;
-                }
-
-                break;
+                OffsetY = 0;
+            }
+            else
+            {
+                OffsetY = delta.Y > 0 ? -TileHeight : TileHeight;
             }
         }
 
@@ -2620,6 +2609,7 @@ public partial class Player : Entity, IPlayer
             if (mIsSprinting)
             {
                 movementTime /= mSprintSpeedMultiplier;
+                Console.WriteLine($"Sprint vitesse appliquée: movementTime = {movementTime}");
             }
 
             PacketSender.SendMove();

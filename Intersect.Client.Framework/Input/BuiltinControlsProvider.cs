@@ -52,6 +52,11 @@ internal sealed class BuiltinControlsProvider : IControlsProvider
         { Control.Hotkey10, new ControlMapping(new ControlBinding(Keys.None, Keys.D0), ControlBinding.Default) },
     };
 
+    public BuiltinControlsProvider()
+    {
+        Console.WriteLine($"Control.Sprint bindé à: {Enum.GetName(typeof(Keys), _defaultMappings[Control.Sprint].Primary.SecondaryKey)}");
+    }
+
     public Control[] Controls { get; } = Enum.GetValues<Control>().Where(control => control.IsValid()).ToArray();
 
     public bool TryGetDefaultMapping(Control control, [NotNullWhen(true)] out ControlMapping? defaultMapping) =>
