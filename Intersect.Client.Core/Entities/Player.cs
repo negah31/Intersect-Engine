@@ -38,6 +38,8 @@ namespace Intersect.Client.Entities;
 
 public partial class Player : Entity, IPlayer
 {
+    public bool mIsSprinting = false;
+    public float mSprintSpeedMultiplier = 2f;
     public delegate void InventoryUpdatedEventHandler(Player player, int slotIndex);
 
     private Guid _class;
@@ -2467,6 +2469,10 @@ public partial class Player : Entity, IPlayer
             return;
         }
 
+        // Détection du sprint
+        mIsSprinting = Controls.IsControlPressed(Control.Sprint);
+        Console.WriteLine($"Sprint active: {mIsSprinting}");
+
         //Try to move if able and not casting spells.
         if (IsMoving || MoveTimer >= Timing.Global.Milliseconds ||
             (!Options.Instance.Combat.MovementCancelsCast && IsCasting))
@@ -2481,6 +2487,16 @@ public partial class Player : Entity, IPlayer
 
         var dir = DirectionFacing;
         var moveDir = DirectionMoving;
+
+        // Limiter les directions si sprint (ex. haut/bas ou direction actuelle)
+        if (mIsSprinting)
+        {
+            // Exemple : limiter à haut/bas
+            if (moveDir is Direction.Left or Direction.Right or Direction.UpLeft or Direction.UpRight or Direction.DownLeft or Direction.DownRight)
+            {
+                mIsSprinting = false; // Désactiver si direction non autorisée
+            }
+        }
 
         var enableCrossingDiagonalBlocks = Options.Instance.Map.EnableCrossingDiagonalBlocks;
 
@@ -2598,8 +2614,16 @@ public partial class Player : Entity, IPlayer
             }
 
             TryToChangeDimension();
+
+            // Ajuster la vitesse si sprint
+            var movementTime = GetMovementTime();
+            if (mIsSprinting)
+            {
+                movementTime /= mSprintSpeedMultiplier;
+            }
+
             PacketSender.SendMove();
-            MoveTimer = (Timing.Global.Milliseconds) + (long)GetMovementTime();
+            MoveTimer = Timing.Global.Milliseconds + (long)movementTime;
         }
         else
         {

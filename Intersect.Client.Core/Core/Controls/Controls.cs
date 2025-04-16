@@ -84,6 +84,7 @@ public partial class Controls : IControlSet
                 }
             }
         }
+        Console.WriteLine($"Sprint mapping loaded: {ActiveControls.Mappings.ContainsKey(Control.Sprint)}");
     }
 
     private static void MigrateControlBindings(Control control)
