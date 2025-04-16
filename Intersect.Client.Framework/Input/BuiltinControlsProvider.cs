@@ -54,7 +54,9 @@ internal sealed class BuiltinControlsProvider : IControlsProvider
 
     public BuiltinControlsProvider()
     {
-        Console.WriteLine($"Control.Sprint bindé à: {Enum.GetName(typeof(Keys), _defaultMappings[Control.Sprint].Primary.SecondaryKey)}");
+        var sprintMapping = _defaultMappings[Control.Sprint];
+        var sprintKey = sprintMapping.Bindings.Count > 0 ? sprintMapping.Bindings[0].Key : Keys.None;
+        Console.WriteLine($"Control.Sprint bindé à: {Enum.GetName(typeof(Keys), sprintKey)}");
     }
 
     public Control[] Controls { get; } = Enum.GetValues<Control>().Where(control => control.IsValid()).ToArray();
