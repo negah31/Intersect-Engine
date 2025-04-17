@@ -2488,20 +2488,30 @@ public partial class Player : Entity, IPlayer
 
         if (moveDir <= Direction.None || Globals.EventDialogs.Count != 0)
         {
-            return; // Silencieux si pas de direction
+            return;
         }
 
         bool sprintKeyPressed = Controls.IsControlPressed(Control.Sprint);
-        if (sprintKeyPressed != mIsSprinting) // Log seulement si changement
+        if (sprintKeyPressed != mIsSprinting)
         {
             mIsSprinting = sprintKeyPressed;
             System.Diagnostics.Debug.WriteLine($"Sprint active: {mIsSprinting}");
+            if (mIsSprinting)
+            {
+                AnimationState = SpriteAnimations.Run; // Utilise Run
+                System.Diagnostics.Debug.WriteLine($"Animation sprint: Run, Sprite={Sprite}");
+            }
+            else
+            {
+                AnimationState = SpriteAnimations.Normal; // Retour à Normal
+                System.Diagnostics.Debug.WriteLine($"Animation normale: Normal, Sprite={Sprite}");
+            }
         }
 
         if (IsMoving || MoveTimer >= Timing.Global.Milliseconds ||
             (!Options.Instance.Combat.MovementCancelsCast && IsCasting))
         {
-            return; // Silencieux si bloqué
+            return;
         }
 
         if (Options.Instance.Combat.MovementCancelsCast)
