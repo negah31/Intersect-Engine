@@ -2530,7 +2530,7 @@ public partial class Player : Entity, IPlayer
             if (IsTileBlocked(target, Z, MapId, ref blockedBy) != -1)
             {
                 System.Diagnostics.Debug.WriteLine("Bloqué: Tile bloqué");
-                returnprovider = "Microsoft.EntityFrameworkCore.SqlServer";
+                return;
             }
 
             position.X += delta.X;
