@@ -39,7 +39,7 @@ namespace Intersect.Client.Entities;
 public partial class Player : Entity, IPlayer
 {
     public bool mIsSprinting = false;
-    public float mSprintSpeedMultiplier = 8f;
+    public float mSprintSpeedMultiplier = 2f;
     public delegate void InventoryUpdatedEventHandler(Player player, int slotIndex);
 
     private Guid _class;
@@ -2430,8 +2430,6 @@ public partial class Player : Entity, IPlayer
     //Movement Processing
     private void ProcessDirectionalInput()
     {
-        System.Diagnostics.Debug.WriteLine("ProcessDirectionalInput exécuté");
-
         if (Globals.Me == default || Globals.MapGrid == default)
         {
             System.Diagnostics.Debug.WriteLine("Bloqué: Globals.Me ou MapGrid null");
@@ -2488,25 +2486,22 @@ public partial class Player : Entity, IPlayer
 
         DirectionMoving = moveDir;
 
-        System.Diagnostics.Debug.WriteLine($"DirectionMoving: {moveDir}");
-
         if (moveDir <= Direction.None || Globals.EventDialogs.Count != 0)
         {
-            System.Diagnostics.Debug.WriteLine("Bloqué: Pas de direction ou EventDialogs");
-            return;
+            return; // Silencieux si pas de direction
         }
 
-        System.Diagnostics.Debug.WriteLine($"Sprint mapping exists: {Controls.ActiveControls.Mappings.ContainsKey(Control.Sprint)}");
         bool sprintKeyPressed = Controls.IsControlPressed(Control.Sprint);
-        System.Diagnostics.Debug.WriteLine($"Sprint key pressed: {sprintKeyPressed}");
-        mIsSprinting = sprintKeyPressed;
-        System.Diagnostics.Debug.WriteLine($"Sprint active: {mIsSprinting}");
+        if (sprintKeyPressed != mIsSprinting) // Log seulement si changement
+        {
+            mIsSprinting = sprintKeyPressed;
+            System.Diagnostics.Debug.WriteLine($"Sprint active: {mIsSprinting}");
+        }
 
         if (IsMoving || MoveTimer >= Timing.Global.Milliseconds ||
             (!Options.Instance.Combat.MovementCancelsCast && IsCasting))
         {
-            System.Diagnostics.Debug.WriteLine("Bloqué: IsMoving, MoveTimer ou IsCasting");
-            return;
+            return; // Silencieux si bloqué
         }
 
         if (Options.Instance.Combat.MovementCancelsCast)

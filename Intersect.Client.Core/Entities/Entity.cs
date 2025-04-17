@@ -608,8 +608,8 @@ public partial class Entity : IEntity
     //Returns the amount of time required to traverse 1 tile
     public virtual float GetMovementTime()
     {
-        var time = 100f; // Vitesse normale: 500 ms par tuile
-        System.Diagnostics.Debug.WriteLine($"GetMovementTime: time initial={time}");
+        var time = 200f; // Vitesse normale: 200 ms par tuile
+        System.Diagnostics.Debug.WriteLine($"GetMovementTime: time initial={time}, TileWidth={Options.Instance.Map.TileWidth}, TileHeight={Options.Instance.Map.TileHeight}");
 
         if (DirectionFacing > Direction.Right)
         {
