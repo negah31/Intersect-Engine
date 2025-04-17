@@ -2100,47 +2100,65 @@ public partial class Entity : IEntity
     {
         if (AnimatedTextures.Count == 0)
         {
+            System.Diagnostics.Debug.WriteLine("UpdateSpriteAnimation: Aucune texture chargée");
             return;
         }
 
         var timingMilliseconds = Timing.Global.Milliseconds;
         var isNotBlockingAndCasting = !IsBlocking && !IsCasting;
 
+        // Par défaut, animation normale
         SpriteAnimation = SpriteAnimations.Normal;
-        if (AnimatedTextures.TryGetValue(SpriteAnimations.Idle, out _) &&
-            LastActionTime + Options.Instance.Sprites.IdleStartDelay < timingMilliseconds &&
-            isNotBlockingAndCasting)
-        {
-            SpriteAnimation = SpriteAnimations.Idle;
-        }
 
-        if (IsMoving && !IsAttacking && isNotBlockingAndCasting)
+        // Priorité 1: Cast
+        if (IsCasting)
         {
-            if (this is Player player && player.mIsSprinting)
+            var spell = SpellDescriptor.Get(SpellCast);
+            if (spell != null)
             {
-                SpriteAnimation = SpriteAnimations.Run;
-                System.Diagnostics.Debug.WriteLine($"UpdateSpriteAnimation: Sprint détecté, SpriteAnimation=Run");
+                var duration = spell.CastDuration;
+                var timeInCast = duration - (CastTime - timingMilliseconds);
+
+                if (AnimatedTextures.TryGetValue(SpriteAnimations.Cast, out _))
+                {
+                    SpriteAnimation = SpriteAnimations.Cast;
+                    System.Diagnostics.Debug.WriteLine($"UpdateSpriteAnimation: Cast détecté, SpriteAnimation=Cast");
+                }
+
+                if (spell.SpellType == SpellType.CombatSpell &&
+                    spell.Combat.TargetType == SpellTargetType.Projectile &&
+                    spell.CastSpriteOverride == null)
+                {
+                    if (AnimatedTextures.TryGetValue(SpriteAnimations.Shoot, out _))
+                    {
+                        SpriteAnimation = SpriteAnimations.Shoot;
+                        System.Diagnostics.Debug.WriteLine($"UpdateSpriteAnimation: Shoot pour Cast, SpriteAnimation=Shoot");
+                    }
+                }
+
+                SpriteFrame = (int)Math.Floor(timeInCast / (duration / (float)SpriteFrames));
             }
-            else
-            {
-                SpriteAnimation = SpriteAnimations.Normal;
-            }
+
             LastActionTime = timingMilliseconds;
+            return; // Cast a la priorité, on arrête ici
         }
 
+        // Priorité 2: Attack
         if (IsAttacking && isNotBlockingAndCasting)
         {
             if (AnimatedTextures.TryGetValue(SpriteAnimations.Normal, out _))
             {
+                System.Diagnostics.Debug.WriteLine("UpdateSpriteAnimation: Attack avec Normal, retour anticipé");
                 return;
             }
 
             var timeInAttack = CalculateAttackTime() - (AttackTimer - timingMilliseconds);
-            LastActionTime = Timing.Global.Milliseconds;
+            LastActionTime = timingMilliseconds;
 
             if (AnimatedTextures.TryGetValue(SpriteAnimations.Attack, out _))
             {
                 SpriteAnimation = SpriteAnimations.Attack;
+                System.Diagnostics.Debug.WriteLine($"UpdateSpriteAnimation: Attack détecté, SpriteAnimation=Attack");
             }
 
             if (Options.Instance.Equipment.WeaponSlot > -1 && Options.Instance.Equipment.WeaponSlot < Equipment.Length)
@@ -2168,6 +2186,7 @@ public partial class Entity : IEntity
                         if (AnimatedTextures.TryGetValue(SpriteAnimations.Weapon, out _))
                         {
                             SpriteAnimation = SpriteAnimations.Weapon;
+                            System.Diagnostics.Debug.WriteLine($"UpdateSpriteAnimation: Weapon détecté, SpriteAnimation=Weapon");
                         }
 
                         if (AnimatedTextures.TryGetValue(SpriteAnimations.Shoot, out _) &&
@@ -2175,6 +2194,7 @@ public partial class Entity : IEntity
                             item.WeaponSpriteOverride == null)
                         {
                             SpriteAnimation = SpriteAnimations.Shoot;
+                            System.Diagnostics.Debug.WriteLine($"UpdateSpriteAnimation: Shoot pour Weapon, SpriteAnimation=Shoot");
                         }
                     }
                 }
@@ -2193,37 +2213,36 @@ public partial class Entity : IEntity
                     SpriteFrame = (int)Math.Floor(timeInAttack / (CalculateAttackTime() / (float)SpriteFrames));
                     break;
             }
+
+            return; // Attack a la priorité, on arrête ici
         }
 
-        if (IsCasting)
+        // Priorité 3: Run (sprint)
+        if (IsMoving && !IsAttacking && isNotBlockingAndCasting)
         {
-            var spell = SpellDescriptor.Get(SpellCast);
-            if (spell != null)
+            if (this is Player player && player.mIsSprinting)
             {
-                var duration = spell.CastDuration;
-                var timeInCast = duration - (CastTime - timingMilliseconds);
-
-                if (AnimatedTextures.TryGetValue(SpriteAnimations.Cast, out _))
-                {
-                    SpriteAnimation = SpriteAnimations.Cast;
-                }
-
-                if (spell.SpellType == SpellType.CombatSpell &&
-                    spell.Combat.TargetType == SpellTargetType.Projectile &&
-                    spell.CastSpriteOverride == null)
-                {
-                    if (AnimatedTextures.TryGetValue(SpriteAnimations.Shoot, out _))
-                    {
-                        SpriteAnimation = SpriteAnimations.Shoot;
-                    }
-                }
-
-                SpriteFrame = (int)Math.Floor(timeInCast / (duration / (float)SpriteFrames));
+                SpriteAnimation = SpriteAnimations.Run;
+                System.Diagnostics.Debug.WriteLine($"UpdateSpriteAnimation: Sprint détecté, SpriteAnimation=Run");
             }
-
+            else
+            {
+                SpriteAnimation = SpriteAnimations.Normal;
+                System.Diagnostics.Debug.WriteLine($"UpdateSpriteAnimation: Mouvement normal, SpriteAnimation=Normal");
+            }
             LastActionTime = timingMilliseconds;
         }
 
+        // Priorité 4: Idle
+        if (AnimatedTextures.TryGetValue(SpriteAnimations.Idle, out _) &&
+            LastActionTime + Options.Instance.Sprites.IdleStartDelay < timingMilliseconds &&
+            isNotBlockingAndCasting)
+        {
+            SpriteAnimation = SpriteAnimations.Idle;
+            System.Diagnostics.Debug.WriteLine($"UpdateSpriteAnimation: Idle détecté, SpriteAnimation=Idle");
+        }
+
+        // Gestion des frames
         if (SpriteAnimation == SpriteAnimations.Normal || SpriteAnimation == SpriteAnimations.Run)
         {
             ResetSpriteFrame();
@@ -2270,29 +2289,35 @@ public partial class Entity : IEntity
         var textureOverride = string.Empty;
         var weaponId = Equipment[Options.Instance.Equipment.WeaponSlot];
 
+        System.Diagnostics.Debug.WriteLine($"LoadAnimationTexture: Début, spriteAnimation={spriteAnimation}, textureName={textureName}");
+
         switch (spriteAnimation)
         {
             case SpriteAnimations.Normal:
             case SpriteAnimations.Idle:
-            case SpriteAnimations.Run: // Ajout pour Run
+            case SpriteAnimations.Run:
+                System.Diagnostics.Debug.WriteLine($"LoadAnimationTexture: Cas {spriteAnimation}, aucun textureOverride");
                 break;
 
             case SpriteAnimations.Attack:
                 if (this is Player player && ClassDescriptor.TryGet(player.Class, out var classDescriptor))
                 {
                     textureOverride = classDescriptor.AttackSpriteOverride;
+                    System.Diagnostics.Debug.WriteLine($"LoadAnimationTexture: Attack, textureOverride={textureOverride}");
                 }
                 break;
 
             case SpriteAnimations.Shoot:
                 if (Equipment.Length <= Options.Instance.Equipment.WeaponSlot)
                 {
+                    System.Diagnostics.Debug.WriteLine("LoadAnimationTexture: Shoot, pas d'équipement");
                     break;
                 }
 
                 if (ItemDescriptor.TryGet(weaponId, out var shootItemDescriptor))
                 {
                     textureOverride = shootItemDescriptor.WeaponSpriteOverride;
+                    System.Diagnostics.Debug.WriteLine($"LoadAnimationTexture: Shoot, textureOverride={textureOverride}");
                 }
 
                 if (!string.IsNullOrWhiteSpace(textureOverride))
@@ -2305,6 +2330,7 @@ public partial class Entity : IEntity
                 if (SpellDescriptor.TryGet(SpellCast, out var spellDescriptor))
                 {
                     textureOverride = spellDescriptor.CastSpriteOverride;
+                    System.Diagnostics.Debug.WriteLine($"LoadAnimationTexture: Cast, textureOverride={textureOverride}");
                 }
 
                 if (!string.IsNullOrWhiteSpace(textureOverride))
@@ -2316,12 +2342,14 @@ public partial class Entity : IEntity
             case SpriteAnimations.Weapon:
                 if (Equipment.Length <= Options.Instance.Equipment.WeaponSlot)
                 {
+                    System.Diagnostics.Debug.WriteLine("LoadAnimationTexture: Weapon, pas d'équipement");
                     break;
                 }
 
                 if (ItemDescriptor.TryGet(weaponId, out var weaponItemDescriptor))
                 {
                     textureOverride = weaponItemDescriptor.WeaponSpriteOverride;
+                    System.Diagnostics.Debug.WriteLine($"LoadAnimationTexture: Weapon, textureOverride={textureOverride}");
                 }
 
                 if (!string.IsNullOrWhiteSpace(textureOverride))
@@ -2331,16 +2359,20 @@ public partial class Entity : IEntity
                 break;
 
             default:
+                System.Diagnostics.Debug.WriteLine($"LoadAnimationTexture: Cas non géré, spriteAnimation={spriteAnimation}");
                 throw new ArgumentOutOfRangeException(nameof(spriteAnimation));
         }
 
         if (TryGetAnimationTexture(textureName, spriteAnimationOverride, textureOverride, out var texture))
         {
             AnimatedTextures[spriteAnimation] = texture;
-            System.Diagnostics.Debug.WriteLine($"LoadAnimationTexture: {spriteAnimation}, Texture={textureName}_{spriteAnimation.ToString().ToLowerInvariant()}");
+            System.Diagnostics.Debug.WriteLine($"LoadAnimationTexture: Succès, {spriteAnimation}, Texture={textureName}_{spriteAnimation.ToString().ToLowerInvariant()}, Stored={AnimatedTextures[spriteAnimation] != null}");
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine($"LoadAnimationTexture: Échec, {spriteAnimation}, Texture={textureName}_{spriteAnimation.ToString().ToLowerInvariant()}");
         }
     }
-
     protected virtual bool TryGetAnimationTexture(string textureName, SpriteAnimations spriteAnimation, string textureOverride, out IGameTexture texture)
     {
         var baseFilename = Path.GetFileNameWithoutExtension(textureName);
