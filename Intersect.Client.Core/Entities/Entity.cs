@@ -2262,16 +2262,15 @@ public partial class Entity : IEntity
 
     protected virtual void LoadAnimationTexture(string textureName, SpriteAnimations spriteAnimation)
     {
-        SpriteAnimations spriteAnimationOveride = spriteAnimation;
+        SpriteAnimations spriteAnimationOverride = spriteAnimation;
         var textureOverride = string.Empty;
         var weaponId = Equipment[Options.Instance.Equipment.WeaponSlot];
 
         switch (spriteAnimation)
         {
-            // No override for these animations.
             case SpriteAnimations.Normal:
             case SpriteAnimations.Idle:
-
+            case SpriteAnimations.Run: // Ajout pour Run
                 break;
 
             case SpriteAnimations.Attack:
@@ -2279,7 +2278,6 @@ public partial class Entity : IEntity
                 {
                     textureOverride = classDescriptor.AttackSpriteOverride;
                 }
-
                 break;
 
             case SpriteAnimations.Shoot:
@@ -2295,9 +2293,8 @@ public partial class Entity : IEntity
 
                 if (!string.IsNullOrWhiteSpace(textureOverride))
                 {
-                    spriteAnimationOveride = SpriteAnimations.Shoot;
+                    spriteAnimationOverride = SpriteAnimations.Shoot;
                 }
-
                 break;
 
             case SpriteAnimations.Cast:
@@ -2308,9 +2305,8 @@ public partial class Entity : IEntity
 
                 if (!string.IsNullOrWhiteSpace(textureOverride))
                 {
-                    spriteAnimationOveride = SpriteAnimations.Cast;
+                    spriteAnimationOverride = SpriteAnimations.Cast;
                 }
-
                 break;
 
             case SpriteAnimations.Weapon:
@@ -2326,18 +2322,18 @@ public partial class Entity : IEntity
 
                 if (!string.IsNullOrWhiteSpace(textureOverride))
                 {
-                    spriteAnimationOveride = SpriteAnimations.Weapon;
+                    spriteAnimationOverride = SpriteAnimations.Weapon;
                 }
-
                 break;
 
             default:
                 throw new ArgumentOutOfRangeException(nameof(spriteAnimation));
         }
 
-        if (TryGetAnimationTexture(textureName, spriteAnimationOveride, textureOverride, out var texture))
+        if (TryGetAnimationTexture(textureName, spriteAnimationOverride, textureOverride, out var texture))
         {
             AnimatedTextures[spriteAnimation] = texture;
+            System.Diagnostics.Debug.WriteLine($"LoadAnimationTexture: {spriteAnimation}, Texture={textureName}_{spriteAnimation.ToString().ToLowerInvariant()}");
         }
     }
 

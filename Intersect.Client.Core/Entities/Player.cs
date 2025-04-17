@@ -2639,7 +2639,6 @@ public partial class Player : Entity, IPlayer
             }
         }
     }
-
     public static void FetchNewMaps()
     {
         if (Globals.MapGridWidth == 0 || Globals.MapGridHeight == 0)
