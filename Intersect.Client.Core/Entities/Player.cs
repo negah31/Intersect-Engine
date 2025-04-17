@@ -2498,12 +2498,12 @@ public partial class Player : Entity, IPlayer
             System.Diagnostics.Debug.WriteLine($"Sprint active: {mIsSprinting}");
             if (mIsSprinting)
             {
-                AnimationState = SpriteAnimations.Run; // Utilise Run
+                SpriteAnimation = SpriteAnimations.Run; // Utilise Run
                 System.Diagnostics.Debug.WriteLine($"Animation sprint: Run, Sprite={Sprite}");
             }
             else
             {
-                AnimationState = SpriteAnimations.Normal; // Retour à Normal
+                SpriteAnimation = SpriteAnimations.Normal; // Retour à Normal
                 System.Diagnostics.Debug.WriteLine($"Animation normale: Normal, Sprite={Sprite}");
             }
         }
