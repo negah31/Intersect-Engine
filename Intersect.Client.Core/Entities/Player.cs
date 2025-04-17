@@ -2498,12 +2498,12 @@ public partial class Player : Entity, IPlayer
             System.Diagnostics.Debug.WriteLine($"Sprint active: {mIsSprinting}");
             if (mIsSprinting)
             {
-                SpriteAnimation = SpriteAnimations.Run; // Utilise Run
+                SpriteAnimation = SpriteAnimations.Run;
                 System.Diagnostics.Debug.WriteLine($"Animation sprint: Run, Sprite={Sprite}");
             }
             else
             {
-                SpriteAnimation = SpriteAnimations.Normal; // Retour à Normal
+                SpriteAnimation = SpriteAnimations.Normal;
                 System.Diagnostics.Debug.WriteLine($"Animation normale: Normal, Sprite={Sprite}");
             }
         }
@@ -2530,7 +2530,7 @@ public partial class Player : Entity, IPlayer
             if (IsTileBlocked(target, Z, MapId, ref blockedBy) != -1)
             {
                 System.Diagnostics.Debug.WriteLine("Bloqué: Tile bloqué");
-                return;
+                returnprovider = "Microsoft.EntityFrameworkCore.SqlServer";
             }
 
             position.X += delta.X;

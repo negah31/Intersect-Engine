@@ -608,7 +608,7 @@ public partial class Entity : IEntity
     //Returns the amount of time required to traverse 1 tile
     public virtual float GetMovementTime()
     {
-        var time = 200f; // Vitesse normale: 200 ms par tuile
+        var time = 120f; // Vitesse normale: 120 ms par tuile
         System.Diagnostics.Debug.WriteLine($"GetMovementTime: time initial={time}, TileWidth={Options.Instance.Map.TileWidth}, TileHeight={Options.Instance.Map.TileHeight}");
 
         if (DirectionFacing > Direction.Right)
@@ -2098,7 +2098,6 @@ public partial class Entity : IEntity
 
     private void UpdateSpriteAnimation()
     {
-        //Exit if textures haven't been loaded yet
         if (AnimatedTextures.Count == 0)
         {
             return;
@@ -2117,13 +2116,20 @@ public partial class Entity : IEntity
 
         if (IsMoving && !IsAttacking && isNotBlockingAndCasting)
         {
-            SpriteAnimation = SpriteAnimations.Normal;
+            if (this is Player player && player.mIsSprinting)
+            {
+                SpriteAnimation = SpriteAnimations.Run;
+                System.Diagnostics.Debug.WriteLine($"UpdateSpriteAnimation: Sprint détecté, SpriteAnimation=Run");
+            }
+            else
+            {
+                SpriteAnimation = SpriteAnimations.Normal;
+            }
             LastActionTime = timingMilliseconds;
         }
 
         if (IsAttacking && isNotBlockingAndCasting)
         {
-            // Normal sprite-sheets has their own handler for attacking frames.
             if (AnimatedTextures.TryGetValue(SpriteAnimations.Normal, out _))
             {
                 return;
@@ -2179,11 +2185,11 @@ public partial class Entity : IEntity
                 case SpriteAnimations.Cast:
                 case SpriteAnimations.Idle:
                 case SpriteAnimations.Normal:
+                case SpriteAnimations.Run:
                     break;
                 case SpriteAnimations.Attack:
                 case SpriteAnimations.Shoot:
                 case SpriteAnimations.Weapon:
-                default:
                     SpriteFrame = (int)Math.Floor(timeInAttack / (CalculateAttackTime() / (float)SpriteFrames));
                     break;
             }
@@ -2197,7 +2203,6 @@ public partial class Entity : IEntity
                 var duration = spell.CastDuration;
                 var timeInCast = duration - (CastTime - timingMilliseconds);
 
-                // Normal sprite-sheets has their own handler for attacking frames.
                 if (AnimatedTextures.TryGetValue(SpriteAnimations.Cast, out _))
                 {
                     SpriteAnimation = SpriteAnimations.Cast;
@@ -2219,7 +2224,7 @@ public partial class Entity : IEntity
             LastActionTime = timingMilliseconds;
         }
 
-        if (SpriteAnimation == SpriteAnimations.Normal)
+        if (SpriteAnimation == SpriteAnimations.Normal || SpriteAnimation == SpriteAnimations.Run)
         {
             ResetSpriteFrame();
         }
@@ -2237,7 +2242,6 @@ public partial class Entity : IEntity
             }
         }
     }
-
     public void ResetSpriteFrame()
     {
         SpriteFrame = 0;
@@ -2349,6 +2353,7 @@ public partial class Entity : IEntity
         }
 
         texture = Globals.ContentManager.GetTexture(TextureType.Entity, $"{animationTextureName}{extension}");
+        System.Diagnostics.Debug.WriteLine($"TryGetAnimationTexture: {animationTextureName}{extension}, Exists={texture != null}");
         return texture != default;
     }
 
