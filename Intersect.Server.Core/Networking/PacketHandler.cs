@@ -813,13 +813,13 @@ internal sealed partial class PacketHandler
         }
 
         var clientTime = packet.Adjusted / TimeSpan.TicksPerMillisecond;
-        var timeTolerance = 50; // Tolérance de 50 ms pour les écarts mineurs
+        var timeTolerance = 50; // Tolérance de 50 ms
         if (player.ClientMoveTimer <= clientTime + timeTolerance &&
             (Options.Instance.Player.AllowCombatMovement || player.ClientAttackTimer <= clientTime))
         {
             if (
-                (player.CanMoveInDirection(packet.Dir, out var blockerType, out _) || blockerType == MovementBlockerType.Slide)
-                && client.Entity.MoveRoute == default
+                (player.CanMoveInDirection(packet.Dir, out var blockerType, out _) || blockerType == MovementBlockerType.Slide) &&
+                client.Entity.MoveRoute == default
             )
             {
                 player.Move(packet.Dir, player, false);
@@ -830,7 +830,7 @@ internal sealed partial class PacketHandler
                 {
                     player.MoveTimer = currentMs + latencyAdjustmentMs + (long)(player.GetMovementTime() * .75f);
                     player.ClientMoveTimer = clientTime + (long)player.GetMovementTime();
-                    System.Diagnostics.Debug.WriteLine($"Mouvement accepté: ClientTime={clientTime}, ClientMoveTimer={player.ClientMoveTimer}, MovementTime={player.GetMovementTime()}, Sprinting={player.Sprinting}");
+                    System.Diagnostics.Debug.WriteLine($"Mouvement accepté: ClientTime={clientTime}, ClientMoveTimer={player.ClientMoveTimer}, MovementTime={player.GetMovementTime()}");
                 }
             }
             else
@@ -853,7 +853,6 @@ internal sealed partial class PacketHandler
             System.Diagnostics.Debug.WriteLine($"Mouvement rejeté: Position incorrecte, PacketMapId={packet.MapId}, EntityMapId={client.Entity.MapId}, PacketX={packet.X}, EntityX={client.Entity.X}, PacketY={packet.Y}, EntityY={client.Entity.Y}");
         }
     }
-
     //ChatMsgPacket
     public void HandlePacket(Client client, ChatMsgPacket packet)
     {

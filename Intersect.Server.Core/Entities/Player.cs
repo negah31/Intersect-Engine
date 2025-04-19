@@ -51,6 +51,27 @@ public partial class Player : Entity
     [NotMapped, JsonIgnore]
     public bool Sprinting { get; set; }
 
+
+    [NotMapped, JsonIgnore]
+    public override float GetMovementTime()
+    {
+        var time = 500f; // 500 ms pour marche
+        if (Sprinting)
+        {
+            time /= 2f; // 250 ms pour sprint
+            System.Diagnostics.Debug.WriteLine($"Sprint vitesse appliquée: movementTime={time}");
+        }
+        else
+        {
+            System.Diagnostics.Debug.WriteLine($"Vitesse normale: movementTime={time}");
+        }
+        foreach (var status in CachedStatuses)
+        {
+            time *= status.SpeedMultiplier();
+        }
+        return time;
+    }
+
     #region Chat
 
     [JsonIgnore][NotMapped] public Player ChatTarget = null;
