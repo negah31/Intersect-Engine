@@ -2214,7 +2214,7 @@ public partial class Entity : IEntity
         // Priorité 3: Run (sprint)
         if (IsMoving && !IsAttacking && isNotBlockingAndCasting)
         {
-            if (this is Player player && player.mIsSprinting)
+            if (this is Player player && player.IsSprinting)
             {
                 SpriteAnimation = SpriteAnimations.Run;
                 System.Diagnostics.Debug.WriteLine($"UpdateSpriteAnimation: Sprint détecté, SpriteAnimation=Run");
