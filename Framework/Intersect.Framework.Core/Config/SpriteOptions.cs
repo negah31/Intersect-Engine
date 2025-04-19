@@ -1,4 +1,4 @@
-﻿using Intersect.Framework.Annotations;
+using Intersect.Framework.Annotations;
 using Newtonsoft.Json;
 
 namespace Intersect.Config;
@@ -66,6 +66,17 @@ public partial class SpriteOptions
     /// </summary>
     [DoesNotRequireRestart]
     public int MovingFrameDuration { get; set; } = 200;
+
+    /// <summary>
+    /// Defines the number of frames there will be in running (sprinting) sprite sheets.
+    /// </summary>
+    public int RunFrames { get; set; } = 4;
+
+    /// <summary>
+    /// Defines the duration (in milliseconds) for transitioning between consecutive running frames.
+    /// </summary>
+    [DoesNotRequireRestart]
+    public int RunFrameDuration { get; set; } = 200;
 
     /// <summary>
     /// Defines the number of frames there will be in shooting sprite sheets.

@@ -807,7 +807,7 @@ internal sealed partial class PacketHandler
         {
             //POSSIBLE HACKING ATTEMPT!
             PacketSender.SendEntityPositionTo(client, client.Entity);
-
+            System.Diagnostics.Debug.WriteLine($"Mouvement rejeté: Tile invalide, MapId={packet.MapId}, X={packet.X}, Y={packet.Y}");
             return;
         }
 
@@ -833,19 +833,21 @@ internal sealed partial class PacketHandler
             else
             {
                 PacketSender.SendEntityPositionTo(client, client.Entity);
+                System.Diagnostics.Debug.WriteLine($"Mouvement rejeté: Direction bloquée, Dir={packet.Dir}, BlockerType={blockerType}");
                 return;
             }
         }
         else
         {
             PacketSender.SendEntityPositionTo(client, client.Entity);
-
+            System.Diagnostics.Debug.WriteLine($"Mouvement rejeté: Temps invalide, ClientMoveTimer={player.ClientMoveTimer}, ClientTime={clientTime}, AllowCombatMovement={Options.Instance.Player.AllowCombatMovement}, ClientAttackTimer={player.ClientAttackTimer}");
             return;
         }
 
         if (packet.MapId != client.Entity.MapId || packet.X != client.Entity.X || packet.Y != client.Entity.Y)
         {
             PacketSender.SendEntityPositionTo(client, client.Entity);
+            System.Diagnostics.Debug.WriteLine($"Mouvement rejeté: Position incorrecte, PacketMapId={packet.MapId}, EntityMapId={client.Entity.MapId}, PacketX={packet.X}, EntityX={client.Entity.X}, PacketY={packet.Y}, EntityY={client.Entity.Y}");
         }
     }
 

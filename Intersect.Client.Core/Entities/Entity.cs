@@ -382,6 +382,7 @@ public partial class Entity : IEntity
                 SpriteAnimations.Shoot => Options.Instance.Sprites.ShootFrames,
                 SpriteAnimations.Cast => Options.Instance.Sprites.CastFrames,
                 SpriteAnimations.Weapon => Options.Instance.Sprites.WeaponFrames,
+                SpriteAnimations.Run => Options.Instance.Sprites.RunFrames,
                 _ => Options.Instance.Sprites.NormalFrames,
             };
         }
@@ -2140,7 +2141,7 @@ public partial class Entity : IEntity
             }
 
             LastActionTime = timingMilliseconds;
-            return; // Cast a la priorité, on arrête ici
+            return;
         }
 
         // Priorité 2: Attack
@@ -2214,7 +2215,7 @@ public partial class Entity : IEntity
                     break;
             }
 
-            return; // Attack a la priorité, on arrête ici
+            return;
         }
 
         // Priorité 3: Run (sprint)
@@ -2243,9 +2244,29 @@ public partial class Entity : IEntity
         }
 
         // Gestion des frames
-        if (SpriteAnimation == SpriteAnimations.Normal || SpriteAnimation == SpriteAnimations.Run)
+        if (SpriteAnimation == SpriteAnimations.Normal)
         {
-            ResetSpriteFrame();
+            if (SpriteFrameTimer + Options.Instance.Sprites.MovingFrameDuration < timingMilliseconds)
+            {
+                SpriteFrame++;
+                if (SpriteFrame >= SpriteFrames)
+                {
+                    SpriteFrame = 0;
+                }
+                SpriteFrameTimer = timingMilliseconds;
+            }
+        }
+        else if (SpriteAnimation == SpriteAnimations.Run)
+        {
+            if (SpriteFrameTimer + Options.Instance.Sprites.RunFrameDuration < timingMilliseconds)
+            {
+                SpriteFrame++;
+                if (SpriteFrame >= SpriteFrames)
+                {
+                    SpriteFrame = 0;
+                }
+                SpriteFrameTimer = timingMilliseconds;
+            }
         }
         else if (SpriteAnimation == SpriteAnimations.Idle)
         {
@@ -2256,7 +2277,6 @@ public partial class Entity : IEntity
                 {
                     SpriteFrame = 0;
                 }
-
                 SpriteFrameTimer = timingMilliseconds;
             }
         }
