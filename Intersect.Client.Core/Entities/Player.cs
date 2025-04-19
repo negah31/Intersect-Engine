@@ -2613,14 +2613,8 @@ public partial class Player : Entity, IPlayer
             TryToChangeDimension();
 
             var movementTime = GetMovementTime();
-            System.Diagnostics.Debug.WriteLine($"Vitesse normale: movementTime = {movementTime}");
-            if (mIsSprinting)
-            {
-                movementTime /= mSprintSpeedMultiplier;
-                System.Diagnostics.Debug.WriteLine($"Sprint vitesse appliquée: movementTime = {movementTime}");
-            }
-
-            PacketSender.SendMove();
+            System.Diagnostics.Debug.WriteLine($"Client: movementTime={movementTime}, Sprinting={mIsSprinting}");
+            PacketSender.SendMove(sprinting: mIsSprinting);
             MoveTimer = Timing.Global.Milliseconds + (long)movementTime;
         }
         else
@@ -2635,7 +2629,7 @@ public partial class Player : Entity, IPlayer
             if (blockedBy != null && mLastBumpedEvent != blockedBy && blockedBy is Event)
             {
                 PacketSender.SendBumpEvent(blockedBy.MapId, blockedBy.Id);
-                mLastBumpedEvent = (Entity)blockedBy;
+                mLastBumpedEvent = (Event)blockedBy;
             }
         }
     }

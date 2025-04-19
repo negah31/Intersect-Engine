@@ -609,23 +609,16 @@ public partial class Entity : IEntity
     //Returns the amount of time required to traverse 1 tile
     public virtual float GetMovementTime()
     {
-        var time = 120f; // Vitesse normale: 120 ms par tuile
-        System.Diagnostics.Debug.WriteLine($"GetMovementTime: time initial={time}, TileWidth={Options.Instance.Map.TileWidth}, TileHeight={Options.Instance.Map.TileHeight}");
-
-        if (DirectionFacing > Direction.Right)
+        var time = 500f; // 500 ms pour marche
+        if (this is Player player && player.IsSprinting)
         {
-            time *= MathHelper.UnitDiagonalLength;
-            System.Diagnostics.Debug.WriteLine($"Diagonale appliquée: time={time}");
+            time /= 2f; // 250 ms pour sprint
+            System.Diagnostics.Debug.WriteLine($"Client: Sprint vitesse appliquée: movementTime={time}");
         }
-
-        if (IsBlocking)
+        else
         {
-            time += time * Options.Instance.Combat.BlockingSlow;
-            System.Diagnostics.Debug.WriteLine($"Blocage appliqué: time={time}");
+            System.Diagnostics.Debug.WriteLine($"Client: Vitesse normale: movementTime={time}");
         }
-
-        time = Math.Min(1000f, time);
-        System.Diagnostics.Debug.WriteLine($"GetMovementTime final: time={time}");
         return time;
     }
 

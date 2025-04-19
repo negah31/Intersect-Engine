@@ -1,4 +1,4 @@
-﻿using MessagePack;
+using MessagePack;
 using Intersect.Enums;
 
 namespace Intersect.Network.Packets.Client;
@@ -11,12 +11,13 @@ public partial class MovePacket : AbstractTimedPacket
     {
     }
 
-    public MovePacket(Guid mapId, byte x, byte y, Direction dir)
+    public MovePacket(Guid mapId, byte x, byte y, Direction dir, bool sprinting)
     {
         MapId = mapId;
         X = x;
         Y = y;
         Dir = dir;
+        Sprinting = sprinting;
     }
 
     [Key(3)]
@@ -31,4 +32,6 @@ public partial class MovePacket : AbstractTimedPacket
     [Key(6)]
     public Direction Dir { get; set; }
 
+    [Key(7)]
+    public bool Sprinting { get; set; }
 }

@@ -104,9 +104,9 @@ public static partial class PacketSender
         SendNeedMap(idsToFetch.ToArray());
     }
 
-    public static void SendMove()
+    public static void SendMove(bool sprinting = false)
     {
-        Network.SendPacket(new MovePacket(Globals.Me.MapId, Globals.Me.X, Globals.Me.Y, Globals.Me.DirectionFacing));
+        Network.SendPacket(new MovePacket(Globals.Me.MapId, (byte)Globals.Me.X, (byte)Globals.Me.Y, Globals.Me.DirectionFacing, sprinting));
     }
 
     public static void SendChatMsg(string msg, byte channel)

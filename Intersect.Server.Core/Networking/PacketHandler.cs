@@ -786,71 +786,78 @@ internal sealed partial class PacketHandler
     //MovePacket
     public void HandlePacket(Client client, MovePacket packet)
     {
-        var player = client?.Entity;
-        if (player == null)
+        try
         {
-            System.Diagnostics.Debug.WriteLine("Mouvement rejeté: Player null");
-            return;
-        }
-
-        // Check if player is stunned or snared, if so don't let them move.
-        foreach (var status in player.CachedStatuses)
-        {
-            if (status.Type == SpellEffect.Stun ||
-                status.Type == SpellEffect.Snare ||
-                status.Type == SpellEffect.Sleep)
+            var player = client?.Entity;
+            if (player == null)
             {
-                System.Diagnostics.Debug.WriteLine($"Mouvement rejeté: Statut bloquant, Type={status.Type}");
+                System.Diagnostics.Debug.WriteLine("Mouvement rejeté: Player null");
                 return;
             }
-        }
 
-        if (!TileHelper.IsTileValid(packet.MapId, packet.X, packet.Y))
-        {
-            PacketSender.SendEntityPositionTo(client, client.Entity);
-            System.Diagnostics.Debug.WriteLine($"Mouvement rejeté: Tile invalide, MapId={packet.MapId}, X={packet.X}, Y={packet.Y}");
-            return;
-        }
-
-        var clientTime = packet.Adjusted / TimeSpan.TicksPerMillisecond;
-        var timeTolerance = 50; // Tolérance de 50 ms
-        if (player.ClientMoveTimer <= clientTime + timeTolerance &&
-            (Options.Instance.Player.AllowCombatMovement || player.ClientAttackTimer <= clientTime))
-        {
-            if (
-                (player.CanMoveInDirection(packet.Dir, out var blockerType, out _) || blockerType == MovementBlockerType.Slide) &&
-                client.Entity.MoveRoute == default
-            )
+            foreach (var status in player.CachedStatuses)
             {
-                player.Move(packet.Dir, player, false);
-                var utcDeltaMs = (Timing.Global.TicksUtc - packet.UTC) / TimeSpan.TicksPerMillisecond;
-                var latencyAdjustmentMs = -(client.Ping + Math.Max(0, utcDeltaMs));
-                var currentMs = packet.ReceiveTime;
-                if (player.MoveTimer > currentMs)
+                if (status.Type == SpellEffect.Stun ||
+                    status.Type == SpellEffect.Snare ||
+                    status.Type == SpellEffect.Sleep)
                 {
-                    player.MoveTimer = currentMs + latencyAdjustmentMs + (long)(player.GetMovementTime() * .75f);
-                    player.ClientMoveTimer = clientTime + (long)player.GetMovementTime();
-                    System.Diagnostics.Debug.WriteLine($"Mouvement accepté: ClientTime={clientTime}, ClientMoveTimer={player.ClientMoveTimer}, MovementTime={player.GetMovementTime()}");
+                    System.Diagnostics.Debug.WriteLine($"Mouvement rejeté: Statut bloquant, Type={status.Type}");
+                    return;
+                }
+            }
+
+            if (!TileHelper.IsTileValid(packet.MapId, packet.X, packet.Y))
+            {
+                PacketSender.SendEntityPositionTo(client, client.Entity);
+                System.Diagnostics.Debug.WriteLine($"Mouvement rejeté: Tile invalide, MapId={packet.MapId}, X={packet.X}, Y={packet.Y}");
+                return;
+            }
+
+            var clientTime = packet.Adjusted / TimeSpan.TicksPerMillisecond;
+            var timeTolerance = 50; // Tolérance de 50 ms
+            if (player.ClientMoveTimer <= clientTime + timeTolerance &&
+                (Options.Instance.Player.AllowCombatMovement || player.ClientAttackTimer <= clientTime))
+            {
+                if (
+                    (player.CanMoveInDirection(packet.Dir, out var blockerType, out _) || blockerType == MovementBlockerType.Slide) &&
+                    client.Entity.MoveRoute == default
+                )
+                {
+                    player.Sprinting = packet.Sprinting;
+                    player.Move(packet.Dir, player, false);
+                    var utcDeltaMs = (Timing.Global.TicksUtc - packet.UTC) / TimeSpan.TicksPerMillisecond;
+                    var latencyAdjustmentMs = -(client.Ping + Math.Max(0, utcDeltaMs));
+                    var currentMs = Timing.Global.Ticks; // Remplacement temporaire de packet.ReceiveTime
+                    if (player.MoveTimer > currentMs)
+                    {
+                        player.MoveTimer = currentMs + latencyAdjustmentMs + (long)(player.GetMovementTime() * 0.75f);
+                        player.ClientMoveTimer = clientTime + (long)player.GetMovementTime();
+                        System.Diagnostics.Debug.WriteLine($"Mouvement accepté: ClientTime={clientTime}, ClientMoveTimer={player.ClientMoveTimer}, MovementTime={player.GetMovementTime()}, Sprinting={player.Sprinting}");
+                    }
+                }
+                else
+                {
+                    PacketSender.SendEntityPositionTo(client, client.Entity);
+                    System.Diagnostics.Debug.WriteLine($"Mouvement rejeté: Direction bloquée, Dir={packet.Dir}, BlockerType={blockerType}");
+                    return;
                 }
             }
             else
             {
                 PacketSender.SendEntityPositionTo(client, client.Entity);
-                System.Diagnostics.Debug.WriteLine($"Mouvement rejeté: Direction bloquée, Dir={packet.Dir}, BlockerType={blockerType}");
+                System.Diagnostics.Debug.WriteLine($"Mouvement rejeté: Temps invalide, ClientMoveTimer={player.ClientMoveTimer}, ClientTime={clientTime}, AllowCombatMovement={Options.Instance.Player.AllowCombatMovement}, ClientAttackTimer={player.ClientAttackTimer}");
                 return;
             }
-        }
-        else
-        {
-            PacketSender.SendEntityPositionTo(client, client.Entity);
-            System.Diagnostics.Debug.WriteLine($"Mouvement rejeté: Temps invalide, ClientMoveTimer={player.ClientMoveTimer}, ClientTime={clientTime}, AllowCombatMovement={Options.Instance.Player.AllowCombatMovement}, ClientAttackTimer={player.ClientAttackTimer}");
-            return;
-        }
 
-        if (packet.MapId != client.Entity.MapId || packet.X != client.Entity.X || packet.Y != client.Entity.Y)
+            if (packet.MapId != client.Entity.MapId || packet.X != client.Entity.X || packet.Y != client.Entity.Y)
+            {
+                PacketSender.SendEntityPositionTo(client, client.Entity);
+                System.Diagnostics.Debug.WriteLine($"Mouvement rejeté: Position incorrecte, PacketMapId={packet.MapId}, EntityMapId={client.Entity.MapId}, PacketX={packet.X}, EntityX={client.Entity.X}, PacketY={packet.Y}, EntityY={client.Entity.Y}");
+            }
+        }
+        catch (Exception ex)
         {
-            PacketSender.SendEntityPositionTo(client, client.Entity);
-            System.Diagnostics.Debug.WriteLine($"Mouvement rejeté: Position incorrecte, PacketMapId={packet.MapId}, EntityMapId={client.Entity.MapId}, PacketX={packet.X}, EntityX={client.Entity.X}, PacketY={packet.Y}, EntityY={client.Entity.Y}");
+            System.Diagnostics.Debug.WriteLine($"Erreur dans HandlePacket: {ex.Message}, StackTrace: {ex.StackTrace}");
         }
     }
     //ChatMsgPacket
