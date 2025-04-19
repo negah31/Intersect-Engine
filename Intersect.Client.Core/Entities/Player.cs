@@ -38,8 +38,13 @@ namespace Intersect.Client.Entities;
 
 public partial class Player : Entity, IPlayer
 {
-    public bool mIsSprinting = false;
-    public float mSprintSpeedMultiplier = 2f;
+    private bool mIsSprinting = false;
+
+    public bool IsSprinting
+    {
+        get => mIsSprinting;
+        set => mIsSprinting = value;
+    }
     public delegate void InventoryUpdatedEventHandler(Player player, int slotIndex);
 
     private Guid _class;
