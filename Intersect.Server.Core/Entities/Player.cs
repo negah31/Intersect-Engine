@@ -47,6 +47,10 @@ public partial class Player : Entity
     [NotMapped, JsonIgnore]
     public Guid PreviousMapInstanceId = Guid.Empty;
 
+
+    [NotMapped, JsonIgnore]
+    public bool Sprinting { get; set; }
+
     #region Chat
 
     [JsonIgnore][NotMapped] public Player ChatTarget = null;
