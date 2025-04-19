@@ -853,64 +853,6 @@ internal sealed partial class PacketHandler
             System.Diagnostics.Debug.WriteLine($"Mouvement rejeté: Position incorrecte, PacketMapId={packet.MapId}, EntityMapId={client.Entity.MapId}, PacketX={packet.X}, EntityX={client.Entity.X}, PacketY={packet.Y}, EntityY={client.Entity.Y}");
         }
     }
-        //check if player is stunned or snared, if so don't let them move.
-        foreach (var status in player.CachedStatuses)
-        {
-            if (status.Type == SpellEffect.Stun ||
-                status.Type == SpellEffect.Snare ||
-                status.Type == SpellEffect.Sleep)
-            {
-                return;
-            }
-        }
-
-        if (!TileHelper.IsTileValid(packet.MapId, packet.X, packet.Y))
-        {
-            //POSSIBLE HACKING ATTEMPT!
-            PacketSender.SendEntityPositionTo(client, client.Entity);
-            System.Diagnostics.Debug.WriteLine($"Mouvement rejeté: Tile invalide, MapId={packet.MapId}, X={packet.X}, Y={packet.Y}");
-            return;
-        }
-
-        var clientTime = packet.Adjusted / TimeSpan.TicksPerMillisecond;
-        if (player.ClientMoveTimer <= clientTime &&
-            (Options.Instance.Player.AllowCombatMovement || player.ClientAttackTimer <= clientTime))
-        {
-            if (
-                (player.CanMoveInDirection(packet.Dir, out var blockerType, out _) || blockerType == MovementBlockerType.Slide)
-                && client.Entity.MoveRoute == default
-            )
-            {
-                player.Move(packet.Dir, player, false);
-                var utcDeltaMs = (Timing.Global.TicksUtc - packet.UTC) / TimeSpan.TicksPerMillisecond;
-                var latencyAdjustmentMs = -(client.Ping + Math.Max(0, utcDeltaMs));
-                var currentMs = packet.ReceiveTime;
-                if (player.MoveTimer > currentMs)
-                {
-                    player.MoveTimer = currentMs + latencyAdjustmentMs + (long)(player.GetMovementTime() * .75f);
-                    player.ClientMoveTimer = clientTime + (long)player.GetMovementTime();
-                }
-            }
-            else
-            {
-                PacketSender.SendEntityPositionTo(client, client.Entity);
-                System.Diagnostics.Debug.WriteLine($"Mouvement rejeté: Direction bloquée, Dir={packet.Dir}, BlockerType={blockerType}");
-                return;
-            }
-        }
-        else
-        {
-            PacketSender.SendEntityPositionTo(client, client.Entity);
-            System.Diagnostics.Debug.WriteLine($"Mouvement rejeté: Temps invalide, ClientMoveTimer={player.ClientMoveTimer}, ClientTime={clientTime}, AllowCombatMovement={Options.Instance.Player.AllowCombatMovement}, ClientAttackTimer={player.ClientAttackTimer}");
-            return;
-        }
-
-        if (packet.MapId != client.Entity.MapId || packet.X != client.Entity.X || packet.Y != client.Entity.Y)
-        {
-            PacketSender.SendEntityPositionTo(client, client.Entity);
-            System.Diagnostics.Debug.WriteLine($"Mouvement rejeté: Position incorrecte, PacketMapId={packet.MapId}, EntityMapId={client.Entity.MapId}, PacketX={packet.X}, EntityX={client.Entity.X}, PacketY={packet.Y}, EntityY={client.Entity.Y}");
-        }
-    }
 
     //ChatMsgPacket
     public void HandlePacket(Client client, ChatMsgPacket packet)
