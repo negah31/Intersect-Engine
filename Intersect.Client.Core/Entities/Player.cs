@@ -2497,11 +2497,11 @@ public partial class Player : Entity, IPlayer
         }
 
         bool sprintKeyPressed = Controls.IsControlPressed(Control.Sprint);
-        if (sprintKeyPressed != mIsSprinting)
+        if (sprintKeyPressed != IsSprinting)
         {
-            mIsSprinting = sprintKeyPressed;
-            System.Diagnostics.Debug.WriteLine($"Sprint active: {mIsSprinting}");
-            if (mIsSprinting)
+            IsSprinting = sprintKeyPressed;
+            System.Diagnostics.Debug.WriteLine($"Sprint active: {IsSprinting}");
+            if (IsSprinting)
             {
                 SpriteAnimation = SpriteAnimations.Run;
                 System.Diagnostics.Debug.WriteLine($"Animation sprint: Run, Sprite={Sprite}");
@@ -2618,8 +2618,8 @@ public partial class Player : Entity, IPlayer
             TryToChangeDimension();
 
             var movementTime = GetMovementTime();
-            System.Diagnostics.Debug.WriteLine($"Client: movementTime={movementTime}, Sprinting={mIsSprinting}");
-            PacketSender.SendMove(sprinting: mIsSprinting);
+            System.Diagnostics.Debug.WriteLine($"Client: movementTime={movementTime}, Sprinting={IsSprinting}");
+            PacketSender.SendMove(sprinting: IsSprinting);
             MoveTimer = Timing.Global.Milliseconds + (long)movementTime;
         }
         else
