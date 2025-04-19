@@ -48,11 +48,10 @@ public partial class Player : Entity
     public Guid PreviousMapInstanceId = Guid.Empty;
 
 
+
     [NotMapped, JsonIgnore]
     public bool Sprinting { get; set; }
 
-
-    [NotMapped, JsonIgnore]
     public override float GetMovementTime()
     {
         var time = 500f; // 500 ms pour marche
@@ -64,10 +63,6 @@ public partial class Player : Entity
         else
         {
             System.Diagnostics.Debug.WriteLine($"Vitesse normale: movementTime={time}");
-        }
-        foreach (var status in CachedStatuses)
-        {
-            time *= status.SpeedMultiplier();
         }
         return time;
     }
