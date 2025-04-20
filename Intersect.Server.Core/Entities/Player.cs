@@ -54,10 +54,10 @@ public partial class Player : Entity
 
     public override float GetMovementTime()
     {
-        var time = 500f; // 500 ms pour marche
+        var time = 250f; // 250 ms pour marche
         if (Sprinting)
         {
-            time /= 2f; // 250 ms pour sprint
+            time /= 2f; // 125 ms pour sprint
             System.Diagnostics.Debug.WriteLine($"Sprint vitesse appliquée: movementTime={time}");
         }
         else

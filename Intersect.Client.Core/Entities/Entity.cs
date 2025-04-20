@@ -609,10 +609,10 @@ public partial class Entity : IEntity
     //Returns the amount of time required to traverse 1 tile
     public virtual float GetMovementTime()
     {
-        var time = 500f; // 500 ms pour marche
+        var time = 250f; // 250 ms pour marche
         if (this is Player player && player.IsSprinting)
         {
-            time /= 2f; // 250 ms pour sprint
+            time /= 2f; // 125 ms pour sprint
             System.Diagnostics.Debug.WriteLine($"Client: Sprint vitesse appliquée: movementTime={time}");
         }
         else
