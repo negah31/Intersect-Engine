@@ -1293,6 +1293,7 @@ public partial class Entity : IEntity
         {
             frame = NormalSpriteAnimationFrame;
         }
+        System.Diagnostics.Debug.WriteLine($"Draw: SpriteAnimation={SpriteAnimation}, Frame={frame}, SpriteFrames={SpriteFrames}");
 
         var srcRectangle = new FloatRect(frame * frameWidth, spriteRow * frameHeight, frameWidth, frameHeight);
         var destRectangle = new FloatRect(

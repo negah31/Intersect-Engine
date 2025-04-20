@@ -76,7 +76,7 @@ public partial class SpriteOptions
     /// Defines the duration (in milliseconds) for transitioning between consecutive running frames.
     /// </summary>
     [DoesNotRequireRestart]
-    public int RunFrameDuration { get; set; } = 200;
+    public int RunFrameDuration { get; set; } = 400;
 
     /// <summary>
     /// Defines the number of frames there will be in shooting sprite sheets.
