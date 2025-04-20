@@ -2251,6 +2251,7 @@ public partial class Entity : IEntity
         }
         else if (SpriteAnimation == SpriteAnimations.Run)
         {
+            System.Diagnostics.Debug.WriteLine($"UpdateSpriteAnimation: Run, SpriteFrames={SpriteFrames}, RunFrameDuration={Options.Instance.Sprites.RunFrameDuration}");
             if (SpriteFrameTimer + Options.Instance.Sprites.RunFrameDuration < timingMilliseconds)
             {
                 SpriteFrame++;
