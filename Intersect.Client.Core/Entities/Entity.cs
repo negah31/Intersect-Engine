@@ -2309,7 +2309,8 @@ public partial class Entity : IEntity
             case SpriteAnimations.Normal:
             case SpriteAnimations.Idle:
             case SpriteAnimations.Run:
-                System.Diagnostics.Debug.WriteLine($"LoadAnimationTexture: Cas {spriteAnimation}, aucun textureOverride");
+                textureOverride = string.Empty; // Utilise baseFilename_run
+                System.Diagnostics.Debug.WriteLine($"LoadAnimationTexture: Run, textureOverride={textureOverride}");
                 break;
 
             case SpriteAnimations.Attack:
